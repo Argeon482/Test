@@ -23,7 +23,9 @@ const CANVAS_HEIGHT = 400;
 const GRID_WIDTH = CANVAS_WIDTH / GRID_SIZE;
 const GRID_HEIGHT = CANVAS_HEIGHT / GRID_SIZE;
 const MAX_PLAYERS_PER_ROOM = 5;
-const GAME_SPEED = 150;
+const INITIAL_GAME_SPEED = 250; // Start slower
+const MIN_GAME_SPEED = 100; // Fastest speed
+const SPEED_DECREASE_PER_FOOD = 8; // Speed increase per food eaten
 
 // Game state storage
 const gameRooms = new Map();
@@ -48,6 +50,8 @@ class GameRoom {
             gameLoop: null
         };
         this.maxPlayers = MAX_PLAYERS_PER_ROOM;
+        this.foodEatenCount = 0;
+        this.currentSpeed = INITIAL_GAME_SPEED;
     }
 
     addPlayer(playerId, playerName, socket) {
@@ -124,9 +128,25 @@ class GameRoom {
 
     startGame() {
         this.gameState.running = true;
+        this.foodEatenCount = 0;
+        this.currentSpeed = INITIAL_GAME_SPEED;
         this.gameState.gameLoop = setInterval(() => {
             this.updateGame();
-        }, GAME_SPEED);
+        }, this.currentSpeed);
+    }
+
+    updateGameSpeed() {
+        const newSpeed = Math.max(MIN_GAME_SPEED, INITIAL_GAME_SPEED - (this.foodEatenCount * SPEED_DECREASE_PER_FOOD));
+        if (newSpeed !== this.currentSpeed) {
+            this.currentSpeed = newSpeed;
+            // Restart the game loop with new speed
+            if (this.gameState.gameLoop) {
+                clearInterval(this.gameState.gameLoop);
+                this.gameState.gameLoop = setInterval(() => {
+                    this.updateGame();
+                }, this.currentSpeed);
+            }
+        }
     }
 
     stopGame() {
@@ -181,8 +201,11 @@ class GameRoom {
             // Check food collision
             if (head.x === this.gameState.food.x && head.y === this.gameState.food.y) {
                 player.score += 10;
+                this.foodEatenCount++;
                 this.gameState.food = this.generateFood();
                 updates.push({ type: 'foodEaten', playerId: player.id, newFood: this.gameState.food });
+                // Update game speed after food is eaten
+                this.updateGameSpeed();
             } else {
                 player.snake.pop();
             }

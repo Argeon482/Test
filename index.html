@@ -45,14 +45,20 @@
                 <div class="game-over" id="gameOver">
                     <h2>You Died!</h2>
                     <p>Your Score: <span id="finalScore">0</span></p>
-                    <button class="restart-btn" id="restartBtn">Return to Lobby</button>
+                    <div class="restart-buttons">
+                        <button class="restart-btn primary" id="restartBtn">Play Again</button>
+                        <button class="restart-btn secondary" id="backToLobbyBtn">Change Name</button>
+                    </div>
                 </div>
                 
                 <div class="game-ended" id="gameEnded" style="display: none;">
                     <h2>Game Ended!</h2>
                     <div class="winner-info" id="winnerInfo"></div>
                     <div class="final-scores" id="finalScores"></div>
-                    <button class="restart-btn" id="newGameBtn">Start New Game</button>
+                    <div class="restart-buttons">
+                        <button class="restart-btn primary" id="newGameBtn">Play Again</button>
+                        <button class="restart-btn secondary" id="backToLobbyBtn2">Change Name</button>
+                    </div>
                 </div>
             </div>
             
