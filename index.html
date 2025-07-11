@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Snake Game - Mobile Friendly</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2c3e50">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🐍 Snake Game</h1>
+            <div class="score-board">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="high-score">Best: <span id="high-score">0</span></div>
+            </div>
+        </div>
+        
+        <div class="game-wrapper">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div class="game-over" id="gameOver">
+                <h2>Game Over!</h2>
+                <p>Score: <span id="finalScore">0</span></p>
+                <button class="restart-btn" id="restartBtn">Play Again</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-row">
+                <button class="control-btn" id="upBtn">⬆️</button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn" id="leftBtn">⬅️</button>
+                <button class="control-btn" id="downBtn">⬇️</button>
+                <button class="control-btn" id="rightBtn">➡️</button>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <p>🎮 Use arrow keys or touch controls to move</p>
+            <p>🍎 Eat food to grow and score points</p>
+            <p>❌ Don't hit walls or yourself!</p>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
