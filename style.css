@@ -89,22 +89,44 @@ body {
     font-size: 1.2rem;
 }
 
+.restart-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .restart-btn {
-    background: linear-gradient(45deg, #3498db, #2980b9);
-    color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 12px 25px;
     border-radius: 25px;
     font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.restart-btn.primary {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    color: white;
     box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
 
-.restart-btn:hover {
+.restart-btn.primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.restart-btn.secondary {
+    background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+    color: white;
+    box-shadow: 0 4px 15px rgba(127, 140, 141, 0.3);
+}
+
+.restart-btn.secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(127, 140, 141, 0.4);
 }
 
 .restart-btn:active {
@@ -504,6 +526,16 @@ button {
     .game-ended, .game-over {
         width: 90%;
         padding: 20px;
+    }
+    
+    .restart-buttons {
+        gap: 10px;
+    }
+    
+    .restart-btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        min-width: 100px;
     }
     
     .game-messages {

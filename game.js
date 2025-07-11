@@ -37,6 +37,8 @@ const gameEndedElement = document.getElementById('gameEnded');
 const finalScoreElement = document.getElementById('finalScore');
 const restartBtn = document.getElementById('restartBtn');
 const newGameBtn = document.getElementById('newGameBtn');
+const backToLobbyBtn = document.getElementById('backToLobbyBtn');
+const backToLobbyBtn2 = document.getElementById('backToLobbyBtn2');
 const gameMessages = document.getElementById('gameMessages');
 const winnerInfo = document.getElementById('winnerInfo');
 const finalScores = document.getElementById('finalScores');
@@ -310,6 +312,49 @@ function returnToLobby() {
     gameMessages.innerHTML = '';
 }
 
+function playAgain() {
+    // Keep the player name and rejoin quickly
+    const savedPlayerName = gameState.playerName;
+    
+    // Disconnect from current game
+    if (socket) {
+        socket.disconnect();
+    }
+    
+    // Reset game state but keep player name
+    gameState = {
+        connected: false,
+        inGame: false,
+        playerId: null,
+        playerName: savedPlayerName,
+        roomId: null,
+        players: [],
+        food: null,
+        gameRunning: false
+    };
+    
+    hideGameScreens();
+    
+    // Clear messages
+    gameMessages.innerHTML = '';
+    
+    // Auto-rejoin with saved name
+    connectToServer();
+    
+    // Show rejoining message
+    showMessage('Rejoining game...', 'info');
+    
+    // Wait for connection then join automatically
+    const rejoinAttempt = () => {
+        if (gameState.connected) {
+            socket.emit('joinGame', { playerName: savedPlayerName });
+        } else {
+            setTimeout(rejoinAttempt, 100);
+        }
+    };
+    rejoinAttempt();
+}
+
 // Change direction (send to server)
 function changeDirection(newDirection) {
     if (!gameState.connected || !gameState.inGame) return;
@@ -351,9 +396,13 @@ playerNameInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Return to lobby buttons
-restartBtn.addEventListener('click', returnToLobby);
-newGameBtn.addEventListener('click', returnToLobby);
+// Restart game buttons
+restartBtn.addEventListener('click', playAgain);
+newGameBtn.addEventListener('click', playAgain);
+
+// Return to lobby buttons (for changing name)
+backToLobbyBtn.addEventListener('click', returnToLobby);
+backToLobbyBtn2.addEventListener('click', returnToLobby);
 
 // Keyboard controls
 document.addEventListener('keydown', (e) => {
