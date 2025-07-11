@@ -140,11 +140,20 @@ function draw() {
         if (!player.alive) return;
         
         player.snake.forEach((segment, index) => {
+            let segmentColor = player.color;
+            
+            // If player hasn't started moving, make them semi-transparent
+            if (!player.hasStartedMoving) {
+                // Convert color to rgba with transparency
+                const rgb = hexToRgb(player.color);
+                segmentColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.5)`;
+            }
+            
             if (index === 0) {
                 // Head - brighter version of player color
-                ctx.fillStyle = lightenColor(player.color, 20);
+                ctx.fillStyle = player.hasStartedMoving ? lightenColor(player.color, 20) : segmentColor;
             } else {
-                ctx.fillStyle = player.color;
+                ctx.fillStyle = segmentColor;
             }
             
             ctx.fillRect(
@@ -165,6 +174,15 @@ function draw() {
                 );
             }
         });
+        
+        // Show "TAP TO START" message for current player if they haven't started
+        if (player.id === gameState.playerId && !player.hasStartedMoving) {
+            const head = player.snake[0];
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('TAP TO START', head.x * GRID_SIZE + GRID_SIZE/2, head.y * GRID_SIZE - 5);
+        }
     });
     
     // Draw food with animation effect
@@ -200,6 +218,16 @@ function lightenColor(color, percent) {
     return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
         (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
         .toString(16).slice(1);
+}
+
+// Helper function to convert hex to RGB
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
 }
 
 // UI Functions
@@ -356,10 +384,32 @@ function playAgain() {
 }
 
 // Change direction (send to server)
-function changeDirection(newDirection) {
+function changeDirection(newDirection, isFirstMove = false) {
     if (!gameState.connected || !gameState.inGame) return;
     
-    socket.emit('changeDirection', { direction: newDirection });
+    socket.emit('changeDirection', { direction: newDirection, isFirstMove: isFirstMove });
+}
+
+// Calculate direction toward center from current position
+function getDirectionToCenter(currentPos) {
+    const centerX = Math.floor(GRID_WIDTH / 2);
+    const centerY = Math.floor(GRID_HEIGHT / 2);
+    
+    const deltaX = centerX - currentPos.x;
+    const deltaY = centerY - currentPos.y;
+    
+    // Choose the direction with the larger distance
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        return { x: Math.sign(deltaX), y: 0 };
+    } else {
+        return { x: 0, y: Math.sign(deltaY) };
+    }
+}
+
+// Check if current player has started moving
+function hasCurrentPlayerStartedMoving() {
+    const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+    return currentPlayer ? currentPlayer.hasStartedMoving : false;
 }
 
 // Event Handlers
@@ -406,67 +456,77 @@ backToLobbyBtn2.addEventListener('click', returnToLobby);
 
 // Keyboard controls
 document.addEventListener('keydown', (e) => {
-    switch (e.code) {
-        case 'ArrowUp':
-        case 'KeyW':
-            e.preventDefault();
-            changeDirection({ x: 0, y: -1 });
-            break;
-        case 'ArrowDown':
-        case 'KeyS':
-            e.preventDefault();
-            changeDirection({ x: 0, y: 1 });
-            break;
-        case 'ArrowLeft':
-        case 'KeyA':
-            e.preventDefault();
-            changeDirection({ x: -1, y: 0 });
-            break;
-        case 'ArrowRight':
-        case 'KeyD':
-            e.preventDefault();
-            changeDirection({ x: 1, y: 0 });
-            break;
+    const direction = getKeyDirection(e.code);
+    if (direction) {
+        e.preventDefault();
+        const isFirstMove = !hasCurrentPlayerStartedMoving();
+        changeDirection(direction, isFirstMove);
     }
 });
 
+function getKeyDirection(keyCode) {
+    switch (keyCode) {
+        case 'ArrowUp':
+        case 'KeyW':
+            return { x: 0, y: -1 };
+        case 'ArrowDown':
+        case 'KeyS':
+            return { x: 0, y: 1 };
+        case 'ArrowLeft':
+        case 'KeyA':
+            return { x: -1, y: 0 };
+        case 'ArrowRight':
+        case 'KeyD':
+            return { x: 1, y: 0 };
+        default:
+            return null;
+    }
+}
+
 // Touch controls
 function addTouchControls() {
+    const handleDirectionInput = (direction) => {
+        const isFirstMove = !hasCurrentPlayerStartedMoving();
+        changeDirection(direction, isFirstMove);
+    };
+    
     upBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        changeDirection({ x: 0, y: -1 });
+        handleDirectionInput({ x: 0, y: -1 });
     });
     
     downBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        changeDirection({ x: 0, y: 1 });
+        handleDirectionInput({ x: 0, y: 1 });
     });
     
     leftBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        changeDirection({ x: -1, y: 0 });
+        handleDirectionInput({ x: -1, y: 0 });
     });
     
     rightBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        changeDirection({ x: 1, y: 0 });
+        handleDirectionInput({ x: 1, y: 0 });
     });
     
     // Also add click events for mouse users
-    upBtn.addEventListener('click', () => changeDirection({ x: 0, y: -1 }));
-    downBtn.addEventListener('click', () => changeDirection({ x: 0, y: 1 }));
-    leftBtn.addEventListener('click', () => changeDirection({ x: -1, y: 0 }));
-    rightBtn.addEventListener('click', () => changeDirection({ x: 1, y: 0 }));
+    upBtn.addEventListener('click', () => handleDirectionInput({ x: 0, y: -1 }));
+    downBtn.addEventListener('click', () => handleDirectionInput({ x: 0, y: 1 }));
+    leftBtn.addEventListener('click', () => handleDirectionInput({ x: -1, y: 0 }));
+    rightBtn.addEventListener('click', () => handleDirectionInput({ x: 1, y: 0 }));
 }
 
-// Swipe controls for mobile
+// Touch controls for mobile - handle tap vs swipe
 let touchStartX = 0;
 let touchStartY = 0;
+let touchStartTime = 0;
 
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
 });
 
 canvas.addEventListener('touchend', (e) => {
@@ -474,28 +534,59 @@ canvas.addEventListener('touchend', (e) => {
     
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
+    const touchEndTime = Date.now();
     
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
+    const deltaTime = touchEndTime - touchStartTime;
     
     const minSwipeDistance = 30;
+    const maxTapTime = 200; // Max time for a tap in milliseconds
+    const maxTapDistance = 10; // Max distance for a tap
     
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Horizontal swipe
-        if (Math.abs(deltaX) > minSwipeDistance) {
-            if (deltaX > 0) {
-                changeDirection({ x: 1, y: 0 }); // Right
-            } else {
-                changeDirection({ x: -1, y: 0 }); // Left
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const isTap = distance < maxTapDistance && deltaTime < maxTapTime;
+    
+    if (!hasCurrentPlayerStartedMoving()) {
+        // First interaction - determine if tap or swipe
+        if (isTap) {
+            // Tap - move toward center
+            const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+            if (currentPlayer && currentPlayer.snake.length > 0) {
+                const direction = getDirectionToCenter(currentPlayer.snake[0]);
+                changeDirection(direction, true);
             }
+        } else if (distance >= minSwipeDistance) {
+            // Swipe - move in swipe direction
+            let direction;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                direction = deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+            } else {
+                // Vertical swipe
+                direction = deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+            }
+            changeDirection(direction, true);
         }
     } else {
-        // Vertical swipe
-        if (Math.abs(deltaY) > minSwipeDistance) {
-            if (deltaY > 0) {
-                changeDirection({ x: 0, y: 1 }); // Down
-            } else {
-                changeDirection({ x: 0, y: -1 }); // Up
+        // Already moving - normal swipe controls
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Horizontal swipe
+            if (Math.abs(deltaX) > minSwipeDistance) {
+                if (deltaX > 0) {
+                    changeDirection({ x: 1, y: 0 }); // Right
+                } else {
+                    changeDirection({ x: -1, y: 0 }); // Left
+                }
+            }
+        } else {
+            // Vertical swipe
+            if (Math.abs(deltaY) > minSwipeDistance) {
+                if (deltaY > 0) {
+                    changeDirection({ x: 0, y: 1 }); // Down
+                } else {
+                    changeDirection({ x: 0, y: -1 }); // Up
+                }
             }
         }
     }
@@ -504,6 +595,20 @@ canvas.addEventListener('touchend', (e) => {
 // Prevent context menu on long press
 canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
+});
+
+// Mouse click handler for desktop - same logic as tap
+canvas.addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    if (!hasCurrentPlayerStartedMoving()) {
+        // First click - move toward center
+        const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+        if (currentPlayer && currentPlayer.snake.length > 0) {
+            const direction = getDirectionToCenter(currentPlayer.snake[0]);
+            changeDirection(direction, true);
+        }
+    }
 });
 
 // Initialize game

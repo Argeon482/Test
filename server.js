@@ -23,7 +23,7 @@ const CANVAS_HEIGHT = 400;
 const GRID_WIDTH = CANVAS_WIDTH / GRID_SIZE;
 const GRID_HEIGHT = CANVAS_HEIGHT / GRID_SIZE;
 const MAX_PLAYERS_PER_ROOM = 5;
-const INITIAL_GAME_SPEED = 250; // Start slower
+const INITIAL_GAME_SPEED = 400; // Start much slower
 const MIN_GAME_SPEED = 100; // Fastest speed
 const SPEED_DECREASE_PER_FOOD = 8; // Speed increase per food eaten
 
@@ -76,7 +76,8 @@ class GameRoom {
             direction: { x: 1, y: 0 },
             score: 0,
             alive: true,
-            color: SNAKE_COLORS[playerIndex]
+            color: SNAKE_COLORS[playerIndex],
+            hasStartedMoving: false
         };
 
         this.players.set(playerId, player);
@@ -119,6 +120,7 @@ class GameRoom {
 
     isFoodOnSnake(foodPos) {
         for (const player of this.players.values()) {
+            // Check all players regardless of movement status for food placement
             if (player.snake.some(segment => segment.x === foodPos.x && segment.y === foodPos.y)) {
                 return true;
             }
@@ -130,6 +132,12 @@ class GameRoom {
         this.gameState.running = true;
         this.foodEatenCount = 0;
         this.currentSpeed = INITIAL_GAME_SPEED;
+        
+        // Reset all players to not started moving
+        for (const player of this.players.values()) {
+            player.hasStartedMoving = false;
+        }
+        
         this.gameState.gameLoop = setInterval(() => {
             this.updateGame();
         }, this.currentSpeed);
@@ -168,6 +176,9 @@ class GameRoom {
             
             alivePlayers++;
             
+            // Skip movement if player hasn't started moving yet
+            if (!player.hasStartedMoving) continue;
+            
             // Move snake
             const head = {
                 x: player.snake[0].x + player.direction.x,
@@ -181,10 +192,11 @@ class GameRoom {
                 continue;
             }
 
-            // Check collision with any snake (including self)
+            // Check collision with any snake (including self) - only check moving players
             let collision = false;
             for (const otherPlayer of this.players.values()) {
-                if (otherPlayer.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                // Only check collision with players who have started moving
+                if (otherPlayer.hasStartedMoving && otherPlayer.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                     collision = true;
                     break;
                 }
@@ -225,12 +237,17 @@ class GameRoom {
         }
     }
 
-    changePlayerDirection(playerId, newDirection) {
+    changePlayerDirection(playerId, newDirection, isFirstMove = false) {
         const player = this.players.get(playerId);
         if (!player || !player.alive) return;
 
-        // Prevent reversing into self
-        if (player.snake.length > 1) {
+        // If this is the first move, start the player moving
+        if (!player.hasStartedMoving) {
+            player.hasStartedMoving = true;
+        }
+
+        // Prevent reversing into self (only if already moving)
+        if (player.hasStartedMoving && player.snake.length > 1) {
             if (newDirection.x === -player.direction.x && newDirection.y === -player.direction.y) {
                 return;
             }
@@ -248,7 +265,8 @@ class GameRoom {
                 snake: player.snake,
                 score: player.score,
                 alive: player.alive,
-                color: player.color
+                color: player.color,
+                hasStartedMoving: player.hasStartedMoving
             });
         }
 
@@ -354,7 +372,7 @@ io.on('connection', (socket) => {
         if (roomId) {
             const room = gameRooms.get(roomId);
             if (room) {
-                room.changePlayerDirection(socket.id, data.direction);
+                room.changePlayerDirection(socket.id, data.direction, data.isFirstMove);
             }
         }
     });
