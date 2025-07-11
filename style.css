@@ -226,6 +226,295 @@ button {
     touch-action: manipulation;
 }
 
+/* Name Entry Screen */
+.name-entry {
+    color: white;
+    text-align: center;
+}
+
+.name-entry h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.name-form {
+    background: rgba(255,255,255,0.1);
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.name-form h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+#playerName {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.9);
+    color: #2c3e50;
+    text-align: center;
+}
+
+#playerName:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+}
+
+#joinGameBtn {
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    width: 100%;
+}
+
+#joinGameBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+}
+
+#joinGameBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.name-form .info {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Room Info */
+.room-info {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.1);
+    padding: 10px 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-weight: bold;
+}
+
+/* Scoreboard */
+.scoreboard {
+    margin-bottom: 20px;
+}
+
+.scores-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.player-score {
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    min-width: 80px;
+}
+
+.player-score.current-player {
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.player-score.dead {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+/* Game Messages */
+.game-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 300px;
+    z-index: 1000;
+}
+
+.game-message {
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+.game-message.success {
+    border-left: 4px solid #27ae60;
+}
+
+.game-message.info {
+    border-left: 4px solid #3498db;
+}
+
+.game-message.warning {
+    border-left: 4px solid #f39c12;
+}
+
+.game-message.error {
+    border-left: 4px solid #e74c3c;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Game Ended Screen */
+.game-ended {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    min-width: 300px;
+}
+
+.game-ended h2 {
+    margin-bottom: 15px;
+    color: #f39c12;
+    font-size: 1.8rem;
+}
+
+.winner-info {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.winner-info .winner {
+    color: #f1c40f;
+    font-weight: bold;
+}
+
+.final-scores {
+    margin-bottom: 20px;
+}
+
+.final-scores h3 {
+    margin-bottom: 10px;
+    color: #3498db;
+}
+
+.final-score-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Mobile Optimizations for Multiplayer */
+@media (max-width: 768px) {
+    .name-form {
+        padding: 20px;
+        margin: 0 10px;
+    }
+    
+    .name-entry h1 {
+        font-size: 2rem;
+    }
+    
+    .room-info {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .scores-container {
+        gap: 8px;
+    }
+    
+    .player-score {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        min-width: 70px;
+    }
+    
+    .game-messages {
+        top: 10px;
+        right: 10px;
+        max-width: 250px;
+    }
+    
+    .game-message {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .name-entry h1 {
+        font-size: 1.8rem;
+    }
+    
+    .name-form h2 {
+        font-size: 1.3rem;
+    }
+    
+    #playerName {
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    .room-info {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+    
+    .game-ended, .game-over {
+        width: 90%;
+        padding: 20px;
+    }
+    
+    .game-messages {
+        position: relative;
+        top: auto;
+        right: auto;
+        max-width: 100%;
+        margin-bottom: 15px;
+    }
+}
+
 /* Hide scrollbars but keep functionality */
 body::-webkit-scrollbar {
     display: none;
